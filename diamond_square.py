@@ -13,67 +13,66 @@ def diamond_square(n):
 	#		column.append(0)
 	#	grid.append(column)
 
-	def recursion(start_x, start_y, end_x, end_y, rand_range):
-		if end_y - start_y == 1:
-			return None
+	def iterative(rand_range):
+		square_length = size-1
+		curr_range = rand_range
+		while square_length >= 2:
+			# diamond step
+			for y in range(0, size-1, square_length):
+				for x in range(0, size-1, square_length):
+					print(square_length)
+					mid_x = (2*x + square_length) // 2
+					mid_y = (2*y + square_length) // 2
 
-		mid_x = (start_x + end_x) // 2
-		mid_y = (start_y + end_y) // 2
+					grid[mid_y][mid_x] = (grid[y][x] + grid[y][x+square_length] + grid[y+square_length][x] + grid[y+square_length][x+square_length]) / 4
+					grid[mid_y][mid_x] += rand.randint(0, rand_range)
 
-		# diamond step
+			# square step
+			for y in range(0, size-1, square_length):
+				for x in range(0, size-1, square_length):
+					mid_x = (2*x + square_length) // 2
+					mid_y = (2*y + square_length) // 2
 
-		grid[mid_y][mid_x] = (grid[start_y][start_x] + grid[start_y][end_y] + grid[end_y][start_x] + grid[end_y][end_x]) / 4
-		grid[mid_y][mid_x] += rand.randint(0, rand_range)
+					grid[mid_y][x] = grid[mid_y][mid_x] + grid[y][x] + grid[y+square_length][x]
+					grid[mid_y][x+square_length] = grid[mid_y][mid_x] + grid[y+square_length][x+square_length] + grid[y][x+square_length]
+					grid[y][mid_x] = grid[mid_y][mid_x] + grid[y][x] + grid[y][x+square_length]
+					grid[y+square_length][mid_x] = grid[mid_y][mid_x] + grid[y+square_length][x] + grid[y+square_length][x+square_length]
 
-		# square step
-		# TODO: fix bug with mid_y end_x square step getting 0 midpoint ahead of it
-		# in calculating average (also end_y mid_x)
-		# Two solutions:
-			# populate the four midpoints for the four subsquares beforehand, then run
-			# the square step recursion on them
-			# OR, calculate only using three averages for those.
-			# Better to do option #1
-		grid[mid_y][start_x] = grid[mid_y][mid_x] + grid[start_y][start_x] + grid[end_y][start_x]
-		grid[mid_y][end_x] = grid[mid_y][mid_x] + grid[end_y][end_x] + grid[start_y][end_x]
-		grid[start_y][mid_x] = grid[mid_y][mid_x] + grid[start_y][start_x] + grid[start_y][end_x]
-		grid[end_y][mid_x] = grid[mid_y][mid_x] + grid[end_y][start_x] + grid[end_y][end_x]
+					# handle edge elements
+					neighbor_dist = mid_x - x
+					if x == 0:
+						grid[mid_y][x] /= 3
+					else:
+						grid[mid_y][x] += grid[mid_y][x - neighbor_dist]
+						grid[mid_y][x] /= 4
 
-		# handle edge elements
-		neighbor_dist = mid_x - start_x
-		if start_x == 0:
-			grid[mid_y][start_x] /= 3
-		else:
-			grid[mid_y][start_x] += grid[mid_y][start_x - neighbor_dist]
-			grid[mid_y][start_x] /= 4
+					if y == 0:
+						grid[y][mid_x] /= 3
+					else:
+						grid[y][mid_x] += grid[y - neighbor_dist][mid_x]
+						grid[y][mid_x] /= 4
 
-		if start_y == 0:
-			grid[start_y][mid_x] /= 3
-		else:
-			grid[start_y][mid_x] += grid[start_y - neighbor_dist][mid_x]
-			grid[start_y][mid_x] /= 4
+					if x+square_length == size-1:
+						grid[mid_y][x+square_length] /= 3
+					else:
+						grid[mid_y][x+square_length] += grid[mid_y][x+square_length + neighbor_dist]
+						grid[mid_y][x+square_length] /= 4
 
-		if end_x == size-1:
-			grid[mid_y][end_x] /= 3
-		else:
-			grid[mid_y][end_x] += grid[mid_y][end_x + neighbor_dist]
-			grid[mid_y][end_x] /= 4
+					if y+square_length == size-1:
+						grid[y+square_length][mid_x] /= 3
+					else:
+						grid[y+square_length][mid_x] += grid[y+square_length + neighbor_dist][mid_x]
+						grid[y+square_length][mid_x] /= 4
 
-		if end_y == size-1:
-			grid[end_y][mid_x] /= 3
-		else:
-			grid[end_y][mid_x] += grid[end_y + neighbor_dist][mid_x]
-			grid[end_y][mid_x] /= 4
+					grid[mid_y][x] += rand.randint(0, rand_range)
+					grid[mid_y][x+square_length] += rand.randint(0, rand_range)
+					grid[y][mid_x] += rand.randint(0, rand_range)
+					grid[y+square_length][mid_x] += rand.randint(0, rand_range)
+			
+			square_length //= 2
+			curr_range //= 2
+		
 
-		grid[mid_y][start_x] += rand.randint(0, rand_range)
-		grid[mid_y][end_x] += rand.randint(0, rand_range)
-		grid[start_y][mid_x] += rand.randint(0, rand_range)
-		grid[end_y][mid_x] += rand.randint(0, rand_range)
-
-		# recursive step
-		recursion(start_x, start_y, mid_x, mid_y, rand_range // 2)
-		recursion(mid_x, start_y, end_x, mid_y, rand_range // 2)
-		recursion(start_x, mid_y, mid_x, end_y, rand_range // 2)
-		recursion(mid_x, mid_y, end_x, end_y, rand_range // 2)
 
 	# grid initialization
 	grid[0][0] = 56
@@ -81,10 +80,12 @@ def diamond_square(n):
 	grid[size-1][0] = 56#43
 	grid[size-1][size-1] = 56#89
 
-	recursion(0, 0, size-1, size-1, 200)
+	#recursion(0, 0, size-1, size-1, 200)
+	iterative(200)
 
 	return grid
 
-terrain = diamond_square(4)
+terrain = diamond_square(9)
+print(terrain)
 plt.imshow(terrain)
 plt.show()
